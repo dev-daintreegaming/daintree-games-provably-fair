@@ -81,6 +81,7 @@ function createOutcomeRow(hash, card) {
   outcomeWrapper.className = 'outcome-wrapper';
   
   const hashDiv = document.createElement('div');
+  hashDiv.className = 'hash-wrapper'
   hashDiv.textContent = hash;
   
   const cardDiv = document.createElement('div');

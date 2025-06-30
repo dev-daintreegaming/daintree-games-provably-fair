@@ -86,6 +86,7 @@ function createOutcomeRow(hash, outcome, number) {
   outcomeWrapper.className = 'outcome-wrapper';
   
   const hashDiv = document.createElement('div');
+  hashDiv.className = 'hash-wrapper'
   hashDiv.textContent = hash;
   
   const numberDiv = document.createElement('div');

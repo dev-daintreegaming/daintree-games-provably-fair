@@ -32,15 +32,33 @@ body::-webkit-scrollbar-thumb {
   gap: 16px;
 }
 
+.results-container {
+  width: 100%;
+  box-sizing: border-box;
+}
+
 .results-wrapper {
-  width: 550px;
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
   margin-top: 16px;
   display: flex;
   flex-direction: column;
   align-items: center;
+
+  &::after {
+    bottom: 48px;
+    right: 0;
+    position: absolute;
+    width: 100%;
+    height: 30px;
+    content: "";
+    background: linear-gradient(180deg, transparent, #20262E);
+  }
 }
 
 .outcome-wrapper {
+  box-sizing: border-box;
   font-size: 12px;
   width: 100%;
   color: white;
@@ -51,6 +69,23 @@ body::-webkit-scrollbar-thumb {
   border: 1px solid white;
   border-bottom: none;
   padding: 4px;
+}
+
+.hash-wrapper {
+  width: 100%;
+  position: relative;
+  overflow-x: auto;
+  scrollbar-gutter: stable;
+
+  &::after {
+    top: 0;
+    right: 0;
+    position: absolute;
+    width: 10px;
+    height: 100%;
+    content: "";
+    background: linear-gradient(90deg, transparent, #20262E);
+  }
 }
 
 .outcome {

@@ -61,6 +61,7 @@ function createOutcomeRow(hash, multiplier) {
   outcomeWrapper.className = 'outcome-wrapper';
   
   const hashDiv = document.createElement('div');
+  hashDiv.className = 'hash-wrapper'
   hashDiv.textContent = hash;
   
   const multiplierDiv = document.createElement('div');

@@ -101,7 +101,7 @@ function updateResults() {
 
 function renderResults() {
   const sha256Input = document.getElementById('sha256-input');
-  const sha512Input = document.getElementById('sha512-input');
+  const sha512Input = document.getElementById('sha512-hmac-input');
   const boardDisplay = document.getElementById('board-display');
 
   sha256Input.value = appState.sha256;

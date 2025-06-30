@@ -191,7 +191,7 @@ function renderTreasuresTable() {
     <table class="treasure-table">
       <thead>
         <tr>
-          <th>Row</th>
+          <th></th>
           ${Array.from({ length: difficultyConfig.columnCount }).map((_, idx) => 
             `<th>Column ${idx + 1}</th>`
           ).join('')}

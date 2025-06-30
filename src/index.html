@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daintree Games - Provably Fair</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Helvetica, sans-serif;
+            background-color: #20262E;
+            color: #ffffff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            color: #b0b0b0;
+            margin-bottom: 20px;
+        }
+
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .game-card {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            border-radius: 12px;
+            padding: 25px;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.3s ease;
+            border: 1px solid #3a4a5c;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .game-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .game-card:hover::before {
+            left: 100%;
+        }
+
+        .game-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            border-color: #667eea;
+        }
+
+        .game-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 30px 0;
+            border-top: 1px solid #3a4a5c;
+            margin-top: 40px;
+        }
+
+        .footer p {
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .games-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            body {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Daintree Games</h1>
+            <p>All games use cryptographic algorithms to ensure fairness and transparency</p>
+        </div>
+
+        <div class="games-grid">
+            <a href="./crash/" class="game-card">
+                <div class="game-title">Crash</div>
+            </a>
+
+            <a href="./dice/" class="game-card">
+                <div class="game-title">Dice</div>
+            </a>
+
+            <a href="./dice-classic/" class="game-card">
+                <div class="game-title">Dice Classic</div>
+            </a>
+
+            <a href="./hilo/" class="game-card">
+                <div class="game-title">Hi-Lo</div>
+            </a>
+
+            <a href="./limbo/" class="game-card">
+                <div class="game-title">Limbo</div>
+            </a>
+
+            <a href="./mines/" class="game-card">
+                <div class="game-title">Mines</div>
+            </a>
+
+            <a href="./plinko/" class="game-card">
+                <div class="game-title">Plinko</div>
+            </a>
+
+            <a href="./roulette/" class="game-card">
+                <div class="game-title">Roulette</div>
+            </a>
+
+            <a href="./tower/" class="game-card">
+                <div class="game-title">Tower</div>
+            </a>
+
+            <a href="./turbo-roll/" class="game-card">
+                <div class="game-title">Turbo Roll</div>
+            </a>
+        </div>
+
+        <div class="footer">
+            <p>All games are provably fair and use cryptographic verification.</p>
+            <p>Source code available on <a href="https://github.com/dev-daintreegaming/daintree-games-provably-fair" target="_blank">GitHub</a></p>
+        </div>
+    </div>
+</body>
+</html>

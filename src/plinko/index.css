@@ -1,0 +1,142 @@
+body {
+  background: #20262E;
+  padding: 16px;
+  font-family: Helvetica;
+}
+
+*::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  position: absolute;
+  background: #374353FF;
+  border-radius: 5px;
+}
+
+.inputs-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: 12px;
+  line-height: 14px;
+  color: white;
+}
+
+.input {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 4px;
+}
+
+.input:focus {
+  outline: none;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.divider {
+  width: 100%;
+  height: 1px;
+  background: gray;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.table-wrapper::-webkit-scrollbar {
+  width: 5px;
+}
+
+.table-wrapper::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb {
+  position: absolute;
+  background: #374353FF;
+  border-radius: 5px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+table th {
+  padding: 8px;
+  border: 1px solid gray;
+  color: white;
+  font-size: 12px;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+table td {
+  padding: 8px;
+  border: 1px solid gray;
+  color: white;
+  font-size: 12px;
+  text-align: center;
+}
+
+table thead td {
+  font-weight: 600;
+}
+
+.text {
+  color: white;
+  font-size: 14px;
+  font-style: italic;
+}
+
+.subtitle {
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.math {
+  padding: 4px;
+  color: white;
+  font-size: 12px;
+}
+
+.github-link {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  color: white;
+  opacity: 0.5;
+  transition: opacity 0.2s ease;
+  text-decoration: none;
+}
+
+.github-link:hover {
+  opacity: 0.8;
+} 

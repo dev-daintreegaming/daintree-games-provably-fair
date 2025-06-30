@@ -1,18 +1,19 @@
 body {
   background: #20262E;
   padding: 16px;
-  font-family: Helvetica;
+  font-family: Helvetica, sans-serif;
 }
 
-body::-webkit-scrollbar {
+*::-webkit-scrollbar {
   width: 5px;
+  height: 5px;
 }
 
-body::-webkit-scrollbar-track {
+*::-webkit-scrollbar-track {
   background: transparent;
 }
 
-body::-webkit-scrollbar-thumb {
+*::-webkit-scrollbar-thumb {
   position: absolute;
   background: #374353FF;
   border-radius: 5px;
@@ -75,7 +76,6 @@ body::-webkit-scrollbar-thumb {
   width: 100%;
   position: relative;
   overflow-x: auto;
-  scrollbar-gutter: stable;
 
   &::after {
     top: 0;

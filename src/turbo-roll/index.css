@@ -43,9 +43,12 @@ body {
 }
 
 .input {
+  background-image: none;
   box-sizing: border-box;
   width: 100%;
   padding: 4px;
+  color: black;
+  border-radius: 1px;
 }
 
 .input:focus {

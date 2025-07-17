@@ -228,6 +228,7 @@ function renderResults() {
   const sha256HmacInput = document.getElementById('sha256-hmac-input');
   const blackjackTitleDiv = document.getElementById('blackjack-title');
   const blackjackHandsDiv = document.getElementById('blackjack-hands');
+  const blackjackNoteDiv = document.getElementById('blackjack-note');
   const fullDeckSection = document.getElementById('full-deck-section');
   
   sha256Input.value = appState.sha256;
@@ -236,6 +237,7 @@ function renderResults() {
   if (appState.blackjackHands !== null && appState.cards !== null) {
     renderBlackjackTitle(blackjackTitleDiv);
     renderBlackjackHands(blackjackHandsDiv, appState.blackjackHands);
+    renderExplanationNote(blackjackNoteDiv);
     renderFullDeck(fullDeckSection, appState.cards);
   } else {
     blackjackTitleDiv.innerHTML = '';
@@ -254,6 +256,16 @@ function renderBlackjackTitle(container) {
   container.appendChild(title);
 }
 
+function renderExplanationNote(container) {
+  container.innerHTML = '';
+
+  const noteElement = document.createElement('div');
+  noteElement.className = 'explanation-note';
+  noteElement.textContent = 'Note: In the sections above, only starting hands are shown. To show the final card hands for each seat, the full chain of game actions (Hit, Stand, Double, Split) that happened in your game is needed. But in the section below, you can see the full deck from which each card was dealt, and compare it with how cards have been dealt in your game.';
+  
+  container.appendChild(noteElement);
+}
+
 function renderFullDeck(container, cards) {
   container.innerHTML = '';
 
@@ -268,9 +280,24 @@ function renderFullDeck(container, cards) {
   const cardsContainer = document.createElement('div');
   cardsContainer.className = 'full-deck-cards';
   
-  cards.forEach(card => {
+  const dealtCardMap = createDealtCardMap(appState.blackjackHands);
+  
+  cards.forEach((card, index) => {
+    const cardWrapper = document.createElement('div');
+    cardWrapper.className = 'card-wrapper';
+    
     const cardElement = BlackjackDealer.formatCard(card);
-    cardsContainer.appendChild(cardElement);
+    cardWrapper.appendChild(cardElement);
+    
+    const dealtInfo = dealtCardMap.get(index);
+    if (dealtInfo) {
+      const dealLabel = document.createElement('div');
+      dealLabel.className = 'deal-label';
+      dealLabel.textContent = dealtInfo;
+      cardWrapper.appendChild(dealLabel);
+    }
+    
+    cardsContainer.appendChild(cardWrapper);
   });
 
   let isExpanded = false;
@@ -288,6 +315,23 @@ function renderFullDeck(container, cards) {
   container.appendChild(title);
   container.appendChild(expandButton);
   container.appendChild(cardsContainer);
+}
+
+function createDealtCardMap(hands) {
+  const dealtMap = new Map();
+  let cardIndex = 0;
+  
+  for (let i = 0; i < hands.players.length; i++) {
+    dealtMap.set(cardIndex++, `Seat ${i + 1}`);
+  }
+  dealtMap.set(cardIndex++, 'Dealer');
+  
+  for (let i = 0; i < hands.players.length; i++) {
+    dealtMap.set(cardIndex++, `Seat ${i + 1}`);
+  }
+  dealtMap.set(cardIndex++, 'Dealer');
+  
+  return dealtMap;
 }
 
 function renderBlackjackHands(container, hands) {

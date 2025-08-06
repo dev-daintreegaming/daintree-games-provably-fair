@@ -72,6 +72,24 @@ function renderResults() {
   
   resultsWrapper.innerHTML = '';
   
+  const helperText = document.createElement('div');
+  helperText.className = 'helper-text';
+  
+  const step = document.createElement('div');
+  step.className = 'step';
+  step.innerHTML = `
+    <h4>Result for each round is calculated following these steps:</h4>
+    <div><b>Step 1:</b> <strong>HMAC-SHA256</strong> of the hash with salt:</div>
+    <div class="horizontal-scroll">${RoundSettler.SALT}</div>
+    <div><b>Step 2:</b> Take first <strong>13 hex characters</strong> and convert to decimal number</div>
+    <div><b>Step 3:</b> Apply <strong>% 5</strong> to get bomb position (0-4) (0 is the bomb)</div>
+    <div><b>Step 4:</b> <strong class="red">Red circle</strong> shows the bomb, <strong class="blue">blue circles</strong> are safe positions</div>
+  `;
+  
+  helperText.appendChild(step);
+  
+  resultsWrapper.appendChild(helperText);
+  
   appState.results.forEach(result => {
     const outcomeRow = createOutcomeRow(result.hash, result.outcome);
     resultsWrapper.appendChild(outcomeRow);

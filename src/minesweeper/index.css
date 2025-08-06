@@ -125,6 +125,48 @@ body {
   border-color: #DC2626;
 }
 
+.helper-text {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.step {
+  box-sizing: border-box;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  border-radius: 4px;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-size: 14px;
+}
+
+.step h4 {
+  margin: 0;
+  color: white;
+  margin-bottom: 8px;
+  font-weight: bold;
+}
+
+strong {
+  color: #66a5ff;
+}
+
+strong.red {
+  color: #EF4444;
+}
+
+.horizontal-scroll {
+  white-space: nowrap;
+  overflow-x: auto;
+  color: #757070;
+}
+
 button {
   margin-top: 16px;
   padding: 8px 16px;

@@ -256,6 +256,7 @@ strong {
 
 .path-display {
   margin-top: 8px;
+  position: relative;
 }
 
 .path-label {
@@ -264,10 +265,31 @@ strong {
   margin-bottom: 8px;
 }
 
+.path-container {
+  position: relative;
+  padding: 8px;
+  border-radius: 4px;
+  background-color: #161b20;
+}
+
 .path-steps {
   display: flex;
-  flex-wrap: wrap;
   gap: 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 4px;
+}
+
+.path-steps::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 8px;
+  bottom: 4px;
+  width: 48px;
+  background: linear-gradient(90deg, transparent, #161b20);
+  pointer-events: none;
+  z-index: 1;
 }
 
 .path-step {

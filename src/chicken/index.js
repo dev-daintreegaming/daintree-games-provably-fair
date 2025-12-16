@@ -111,13 +111,15 @@ function renderPath() {
   let pathHTML = `
     <div class="path-display">
       <div class="path-label">Path (${appState.path.length} steps):</div>
-      <div class="path-steps">
-        ${appState.path.map((step, index) => `
-          <div class="path-step ${step.toLowerCase()}">
-            <span class="step-number">${index + 1}</span>
-            <span class="step-value">${step}</span>
-          </div>
-        `).join('')}
+      <div class="path-container">
+        <div class="path-steps">
+          ${appState.path.map((step, index) => `
+            <div class="path-step ${step.toLowerCase()}">
+              <span class="step-number">${index + 1}</span>
+              <span class="step-value">${step}</span>
+            </div>
+          `).join('')}
+        </div>
       </div>
     </div>
   `;

@@ -84,7 +84,7 @@
 
             <div class="field-group">
                 <div class="field">
-                    <div class="label">Server seed hash (verification)</div>
+                    <div class="label">sha256(serverSeed)</div>
                     <input
                             type="text"
                             class="input"
@@ -94,7 +94,7 @@
                 </div>
 
                 <div class="field">
-                    <div class="label">HMAC-SHA512 (Round Hash)</div>
+                    <div class="label">sha512Hmac(clientSeed:nonce, serverSeed)</div>
                     <input
                             type="text"
                             class="input"

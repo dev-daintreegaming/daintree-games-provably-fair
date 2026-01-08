@@ -126,8 +126,6 @@ class WheelCalculator {
 
     const segmentIndex = this.getSegmentIndex(sha512Hmac, segments.length);
 
-    console.log(segmentIndex);
-
     const winningSegment = segments[segmentIndex];
 
     return {

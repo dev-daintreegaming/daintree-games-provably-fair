@@ -1,7 +1,7 @@
 class ShaUtils {
-  static hmacSha512 = CryptoJS.HmacSHA512;
-  static hmacSha256 = CryptoJS.HmacSHA256;
-  static sha256 = CryptoJS.SHA256;
+    static hmacSha512 = CryptoJS.HmacSHA512;
+    static hmacSha256 = CryptoJS.HmacSHA256;
+    static sha256 = CryptoJS.SHA256;
 }
 
 function getRTP() {
@@ -10,28 +10,44 @@ function getRTP() {
     return rtpParam ? parseInt(rtpParam, 10) : 97;
 }
 
-const MULTIPLIER_PATTERNS_96 = {
-    LOW: [1.9, 1.1, 1.1, 1.1, 0, 1.1, 1.1, 1.1, 1.1, 0],
-    MEDIUM: [0, 1.8, 0, 1.4, 0, 2, 0, 1.4, 0, 3],
-    HIGH: [0, 0, 0, 0, 0, 0, 0, 0, 0, 9.6],
+const SUPPORTED_RTPS = [96, 97, 98, 99];
+
+const LOW_MAJOR_BY_RTP = {
+    96: 1.9,
+    97: 2.0,
+    98: 2.1,
+    99: 1.5,
 };
 
-const MULTIPLIER_PATTERNS_97 = {
-    LOW: [2, 1.1, 1.1, 1.1, 0, 1.1, 1.1, 1.1, 1.1, 0],
-    MEDIUM: [0, 1.9, 0, 1.4, 0, 2, 0, 1.4, 0, 3],
-    HIGH: [0, 0, 0, 0, 0, 0, 0, 0, 0, 9.7],
-};
-
-const MULTIPLIER_PATTERNS_98= {
-    LOW: [2, 1.1, 1.1, 1.1, 0, 1.1, 1.1, 1.1, 1.1, 0],
-    MEDIUM: [0, 1.9, 0, 1.4, 0, 2, 0, 1.4, 0, 3],
-    HIGH: [0, 0, 0, 0, 0, 0, 0, 0, 0, 9.8],
-};
-
-const MULTIPLIER_PATTERNS_99 = {
-    LOW: [1.5, 1.2, 1.2, 1.2, 0, 1.2, 1.2, 1.2, 1.2, 0],
-    MEDIUM: [0, 1.9, 0, 1.5, 0, 2, 0, 1.5, 0, 3],
-    HIGH: [0, 0, 0, 0, 0, 0, 0, 0, 0, 9.9],
+const MEDIUM_MULTIPLIERS = {
+    96: {
+        10: [0, 1.5, 0, 1.9, 0, 1.5, 0, 2, 0, 2.7],
+        20: [0, 2, 0, 1.5, 0, 2, 0, 2, 0, 1.8, 0, 2, 0, 1.5, 0, 2, 0, 2, 0, 2.4],
+        30: [0, 1.5, 0, 2, 0, 1.5, 0, 2, 0, 1.7, 0, 1.5, 0, 2, 0, 1.5, 0, 2, 0, 1.5, 0, 2, 0, 1.5, 0, 2, 0, 3, 0, 3.1],
+        40: [0, 1.5, 0, 2, 0, 1.5, 0, 2.7, 0, 2, 0, 1.5, 0, 2, 0, 2.7, 0, 1.5, 0, 2, 0, 1.5, 0, 2.7, 0, 1.6, 0, 2, 0, 1.5, 0, 2.7, 0, 2, 0, 1.5, 0, 2, 0, 1.5],
+        50: [0, 1.5, 0, 2, 0, 1.5, 0, 2, 0, 1.5, 0, 2, 0, 1.5, 0, 3, 0, 1.5, 0, 2, 0, 1.5, 0, 2, 0, 1.5, 0, 2, 0, 1.5, 0, 3, 0, 1.5, 0, 2, 0, 1.5, 0, 2, 0, 1.5, 0, 3, 0, 1.5, 0, 1.5, 0, 3.5],
+    },
+    97: {
+        10: [0, 1.5, 0, 1.9, 0, 1.5, 0, 2, 0, 2.8],
+        20: [0, 2, 0, 1.5, 0, 2, 0, 2, 0, 1.8, 0, 2, 0, 1.5, 0, 2, 0, 2, 0, 2.6],
+        30: [0, 1.5, 0, 2, 0, 1.5, 0, 2, 0, 1.7, 0, 1.5, 0, 2, 0, 1.5, 0, 2, 0, 1.5, 0, 2, 0, 1.5, 0, 2, 0, 3, 0, 3.4],
+        40: [0, 1.5, 0, 2, 0, 1.5, 0, 2.8, 0, 2, 0, 1.5, 0, 2, 0, 2.8, 0, 1.5, 0, 2, 0, 1.5, 0, 2.8, 0, 1.6, 0, 2, 0, 1.5, 0, 2.8, 0, 2, 0, 1.5, 0, 2, 0, 1.5],
+        50: [0, 1.5, 0, 2, 0, 1.5, 0, 2, 0, 1.5, 0, 2, 0, 1.5, 0, 3, 0, 1.5, 0, 2, 0, 1.5, 0, 2, 0, 1.5, 0, 2, 0, 1.5, 0, 3, 0, 1.5, 0, 2, 0, 1.5, 0, 2, 0, 1.5, 0, 3, 0, 1.5, 0, 1.5, 0, 4],
+    },
+    98: {
+        10: [0, 1.5, 0, 1.9, 0, 1.5, 0, 2, 0, 2.9],
+        20: [0, 2, 0, 1.5, 0, 2, 0, 2, 0, 1.8, 0, 2, 0, 1.5, 0, 2, 0, 2, 0, 2.8],
+        30: [0, 1.5, 0, 2, 0, 1.5, 0, 2, 0, 1.7, 0, 1.5, 0, 2, 0, 1.5, 0, 2, 0, 1.5, 0, 2, 0, 1.5, 0, 2, 0, 3, 0, 3.7],
+        40: [0, 1.5, 0, 2, 0, 1.5, 0, 2.9, 0, 2, 0, 1.5, 0, 2, 0, 2.9, 0, 1.5, 0, 2, 0, 1.5, 0, 2.9, 0, 1.6, 0, 2, 0, 1.5, 0, 2.9, 0, 2, 0, 1.5, 0, 2, 0, 1.5],
+        50: [0, 1.5, 0, 2, 0, 1.5, 0, 2, 0, 1.5, 0, 2, 0, 1.5, 0, 3, 0, 1.5, 0, 2, 0, 1.5, 0, 2, 0, 1.5, 0, 2, 0, 1.5, 0, 3, 0, 1.5, 0, 2, 0, 1.5, 0, 2, 0, 1.5, 0, 3, 0, 1.5, 0, 1.5, 0, 4.5],
+    },
+    99: {
+        10: [0, 1.5, 0, 1.9, 0, 1.5, 0, 2, 0, 3],
+        20: [0, 2, 0, 1.5, 0, 2, 0, 2, 0, 1.8, 0, 2, 0, 1.5, 0, 2, 0, 2, 0, 3],
+        30: [0, 1.5, 0, 2, 0, 1.5, 0, 2, 0, 1.7, 0, 1.5, 0, 2, 0, 1.5, 0, 2, 0, 1.5, 0, 2, 0, 1.5, 0, 2, 0, 3, 0, 4],
+        40: [0, 1.5, 0, 2, 0, 1.5, 0, 3, 0, 2, 0, 1.5, 0, 2, 0, 3, 0, 1.5, 0, 2, 0, 1.5, 0, 3, 0, 1.6, 0, 2, 0, 1.5, 0, 3, 0, 2, 0, 1.5, 0, 2, 0, 1.5],
+        50: [0, 1.5, 0, 2, 0, 1.5, 0, 2, 0, 1.5, 0, 2, 0, 1.5, 0, 3, 0, 1.5, 0, 2, 0, 1.5, 0, 2, 0, 1.5, 0, 2, 0, 1.5, 0, 3, 0, 1.5, 0, 2, 0, 1.5, 0, 2, 0, 1.5, 0, 3, 0, 1.5, 0, 1.5, 0, 5],
+    },
 };
 
 const resolveColorByMultiplier = (multiplier) => {
@@ -39,7 +55,7 @@ const resolveColorByMultiplier = (multiplier) => {
         return "#737373";
     }
 
-    if (multiplier < 1.5) {
+    if (multiplier <= 1.5) {
         return "#E5E5E5";
     }
 
@@ -47,58 +63,65 @@ const resolveColorByMultiplier = (multiplier) => {
         return "#16A34A";
     }
 
-    if (multiplier < 3) {
+    if (multiplier < 2.5) {
         return "#EA580C";
     }
 
-    if (multiplier < 4) {
+    if (multiplier <= 3) {
         return "#2563EB";
     }
 
     return "#9333EA";
 };
 
-const MIN_SEGMENT_BLOCK = 10;
+const WHEEL_SEGMENTS = [10, 20, 30, 40, 50];
+
+function buildLowDifficultyMultipliers(segments, rtp) {
+    const regularWin = rtp >= 99 ? 1.2 : 1.1;
+    const peakWin = LOW_MAJOR_BY_RTP[rtp];
+    const base = [peakWin, regularWin, regularWin, regularWin, 0, regularWin, regularWin, regularWin, regularWin, 0];
+    return Array.from({ length: segments / 10 }).flatMap(() => base);
+}
+
+function buildHighDifficultyMultipliers(segments, rtp) {
+    const max = (segments * rtp) / 100;
+    return [...Array(segments - 1).fill(0), max];
+}
+
+function resolveRtp(margin) {
+    const rtp = 100 - margin;
+    if (!SUPPORTED_RTPS.includes(rtp)) {
+        throw new Error(`Multipliers not resolved for rtp ${rtp}`);
+    }
+    return rtp;
+}
+
+const MULTIPLIERS = Object.fromEntries(
+    SUPPORTED_RTPS.map((rtp) => [
+        rtp,
+        {
+            LOW: Object.fromEntries(WHEEL_SEGMENTS.map((s) => [s, buildLowDifficultyMultipliers(s, rtp)])),
+            MEDIUM: MEDIUM_MULTIPLIERS[rtp],
+            HIGH: Object.fromEntries(WHEEL_SEGMENTS.map((s) => [s, buildHighDifficultyMultipliers(s, rtp)])),
+        },
+    ])
+);
 
 class MultiplierResolver {
-    static rtp96 = MULTIPLIER_PATTERNS_96;
-    static rtp97 = MULTIPLIER_PATTERNS_97;
-    static rtp98 = MULTIPLIER_PATTERNS_98;
-    static rtp99 = MULTIPLIER_PATTERNS_99;
-
-    static resolveMultipliers(margin) {
-        switch (margin) {
-            case 1: return this.rtp99;
-            case 2: return this.rtp98;
-            case 3: return this.rtp97;
-            case 4: return this.rtp96;
-            default: throw new Error(`Multipliers not resolved for rtp ${100 - margin}`);
-        }
-    }
-
     static generateWheelSegments(segments, difficulty, margin) {
-        const multipliers = this.resolveMultipliers(margin);
-        const pattern = multipliers[difficulty];
-        const result = [];
+        const rtp = resolveRtp(margin);
+        const multipliers = MULTIPLIERS[rtp][difficulty][segments];
 
-        const repeatCount = segments / MIN_SEGMENT_BLOCK;
-
-        for (let i = 0; i < repeatCount; i++) {
-            for (const multiplier of pattern) {
-                result.push({
-                    multiplier,
-                    color: resolveColorByMultiplier(multiplier),
-                });
-            }
-        }
-
-        return result;
+        return multipliers.map((multiplier) => ({
+            multiplier,
+            color: resolveColorByMultiplier(multiplier),
+        }));
     }
 
-    static getUniqueMultipliers(difficulty, margin) {
-        const multipliers = this.resolveMultipliers(margin);
-        const pattern = multipliers[difficulty];
-        const uniqueMultipliers = [...new Set(pattern)].sort((a, b) => a - b);
+    static getUniqueMultipliers(segments, difficulty, margin) {
+        const rtp = resolveRtp(margin);
+        const multipliers = MULTIPLIERS[rtp][difficulty][segments];
+        const uniqueMultipliers = [...new Set(multipliers)].sort((a, b) => a - b);
 
         return uniqueMultipliers.map((multiplier) => ({
             multiplier,
@@ -113,149 +136,149 @@ function getMarginFromRTP() {
 }
 
 class WheelCalculator {
-  static getSegmentIndex(hash, totalSegments) {
-    const num = parseInt(hash.substring(0, 13), 16);
+    static getSegmentIndex(hash, totalSegments) {
+        const num = parseInt(hash.substring(0, 13), 16);
 
-    return num % totalSegments;
-  }
+        return num % totalSegments;
+    }
 
-  static getData(serverSeed, nonce, clientSeed, segmentCount, riskLevel) {
-    const margin = getMarginFromRTP();
-    const sha512Hmac = ShaUtils.hmacSha512(`${clientSeed}:${nonce}`, serverSeed).toString();
-    const segments = MultiplierResolver.generateWheelSegments(segmentCount, riskLevel, margin);
+    static getData(serverSeed, nonce, clientSeed, segmentCount, riskLevel) {
+        const margin = getMarginFromRTP();
+        const sha512Hmac = ShaUtils.hmacSha512(`${clientSeed}:${nonce}`, serverSeed).toString();
+        const segments = MultiplierResolver.generateWheelSegments(segmentCount, riskLevel, margin);
 
-    const segmentIndex = this.getSegmentIndex(sha512Hmac, segments.length);
+        const segmentIndex = this.getSegmentIndex(sha512Hmac, segments.length);
 
-    const winningSegment = segments[segmentIndex];
+        const winningSegment = segments[segmentIndex];
 
-    return {
-      sha256: ShaUtils.sha256(serverSeed).toString(),
-      sha512Hmac,
-      segments,
-      segmentIndex,
-      multiplier: winningSegment.multiplier,
-      color: winningSegment.color,
-      result: winningSegment.multiplier > 0 ? 'WIN' : 'LOSS'
-    };
-  }
+        return {
+            sha256: ShaUtils.sha256(serverSeed).toString(),
+            sha512Hmac,
+            segments,
+            segmentIndex,
+            multiplier: winningSegment.multiplier,
+            color: winningSegment.color,
+            result: winningSegment.multiplier > 0 ? 'WIN' : 'LOSS'
+        };
+    }
 }
 
 let appState = {
-  serverSeed: '',
-  nonce: '',
-  clientSeed: '',
-  segmentCount: 30,
-  riskLevel: 'MEDIUM',
-  sha256: '',
-  sha512Hmac: '',
-  segments: [],
-  segmentIndex: null,
-  multiplier: null,
-  color: null,
-  result: null
+    serverSeed: '',
+    nonce: '',
+    clientSeed: '',
+    segmentCount: 30,
+    riskLevel: 'MEDIUM',
+    sha256: '',
+    sha512Hmac: '',
+    segments: [],
+    segmentIndex: null,
+    multiplier: null,
+    color: null,
+    result: null
 };
 
 function createCircleVisualization(segments, segmentIndex) {
-  const totalSegments = segments.length;
-  const segmentAngle = 360 / totalSegments;
-  
-  const circleContainer = document.createElement('div');
-  circleContainer.className = 'circle-container';
-  
-  const marker = document.createElement('div');
-  marker.className = 'circle-marker';
-  
-  const circle = document.createElement('div');
-  circle.className = 'circle';
-  
-  let gradientParts = [];
-  let currentAngle = 0;
-  
-  segments.forEach((segment) => {
-    const startAngle = currentAngle;
-    const endAngle = currentAngle + segmentAngle;
-    gradientParts.push(`${segment.color} ${startAngle}deg ${endAngle}deg`);
-    currentAngle = endAngle;
-  });
-  
-  circle.style.background = `conic-gradient(${gradientParts.join(', ')})`;
-  
-  const winningAngle = segmentIndex * segmentAngle + (segmentAngle / 2);
-  const rotationDegrees = 360 - winningAngle;
-  circle.style.transform = `rotate(${rotationDegrees}deg)`;
-  
-  circleContainer.appendChild(marker);
-  circleContainer.appendChild(circle);
-  
-  return circleContainer;
+    const totalSegments = segments.length;
+    const segmentAngle = 360 / totalSegments;
+
+    const circleContainer = document.createElement('div');
+    circleContainer.className = 'circle-container';
+
+    const marker = document.createElement('div');
+    marker.className = 'circle-marker';
+
+    const circle = document.createElement('div');
+    circle.className = 'circle';
+
+    let gradientParts = [];
+    let currentAngle = 0;
+
+    segments.forEach((segment) => {
+        const startAngle = currentAngle;
+        const endAngle = currentAngle + segmentAngle;
+        gradientParts.push(`${segment.color} ${startAngle}deg ${endAngle}deg`);
+        currentAngle = endAngle;
+    });
+
+    circle.style.background = `conic-gradient(${gradientParts.join(', ')})`;
+
+    const winningAngle = segmentIndex * segmentAngle + (segmentAngle / 2);
+    const rotationDegrees = 360 - winningAngle;
+    circle.style.transform = `rotate(${rotationDegrees}deg)`;
+
+    circleContainer.appendChild(marker);
+    circleContainer.appendChild(circle);
+
+    return circleContainer;
 }
 
 function updateResults() {
-  if (!appState.serverSeed || !appState.clientSeed) {
-    appState.sha256 = '';
-    appState.sha512Hmac = '';
-    appState.segments = [];
-    appState.segmentIndex = null;
-    appState.multiplier = null;
-    appState.color = null;
-    appState.result = null;
+    if (!appState.serverSeed || !appState.clientSeed) {
+        appState.sha256 = '';
+        appState.sha512Hmac = '';
+        appState.segments = [];
+        appState.segmentIndex = null;
+        appState.multiplier = null;
+        appState.color = null;
+        appState.result = null;
+        renderResults();
+        return;
+    }
+
+    try {
+        const data = WheelCalculator.getData(
+            appState.serverSeed,
+            appState.nonce,
+            appState.clientSeed,
+            parseInt(appState.segmentCount),
+            appState.riskLevel
+        );
+
+        appState.sha256 = data.sha256;
+        appState.sha512Hmac = data.sha512Hmac;
+        appState.segments = data.segments;
+        appState.segmentIndex = data.segmentIndex;
+        appState.multiplier = data.multiplier;
+        appState.color = data.color;
+        appState.result = data.result;
+    } catch (error) {
+        console.error('Error calculating results:', error);
+        appState.sha256 = '';
+        appState.sha512Hmac = '';
+        appState.segments = [];
+        appState.segmentIndex = null;
+        appState.multiplier = null;
+        appState.color = null;
+        appState.result = null;
+    }
+
     renderResults();
-    return;
-  }
-
-  try {
-    const data = WheelCalculator.getData(
-      appState.serverSeed,
-      appState.nonce,
-      appState.clientSeed,
-      parseInt(appState.segmentCount),
-      appState.riskLevel
-    );
-
-    appState.sha256 = data.sha256;
-    appState.sha512Hmac = data.sha512Hmac;
-    appState.segments = data.segments;
-    appState.segmentIndex = data.segmentIndex;
-    appState.multiplier = data.multiplier;
-    appState.color = data.color;
-    appState.result = data.result;
-  } catch (error) {
-    console.error('Error calculating results:', error);
-    appState.sha256 = '';
-    appState.sha512Hmac = '';
-    appState.segments = [];
-    appState.segmentIndex = null;
-    appState.multiplier = null;
-    appState.color = null;
-    appState.result = null;
-  }
-
-  renderResults();
 }
 
 function renderResults() {
-  const sha256Input = document.getElementById('sha256-input');
-  const sha512HmacInput = document.getElementById('sha512-hmac-input');
-  
-  sha256Input.value = appState.sha256;
-  sha512HmacInput.value = appState.sha512Hmac;
+    const sha256Input = document.getElementById('sha256-input');
+    const sha512HmacInput = document.getElementById('sha512-hmac-input');
 
-  renderVisualization();
+    sha256Input.value = appState.sha256;
+    sha512HmacInput.value = appState.sha512Hmac;
+
+    renderVisualization();
 }
 
 function renderVisualization() {
-  const resultsContainer = document.getElementById('results-container');
-  
-  if (appState.segmentIndex === null || appState.segments.length === 0) {
-    resultsContainer.innerHTML = '';
-    return;
-  }
+    const resultsContainer = document.getElementById('results-container');
 
-  const circleVisualization = createCircleVisualization(appState.segments, appState.segmentIndex);
-  const totalSegments = appState.segments.length;
-  const decimalValue = parseInt(appState.sha512Hmac.substring(0, 13), 16);
-  
-  const resultsHTML = `
+    if (appState.segmentIndex === null || appState.segments.length === 0) {
+        resultsContainer.innerHTML = '';
+        return;
+    }
+
+    const circleVisualization = createCircleVisualization(appState.segments, appState.segmentIndex);
+    const totalSegments = appState.segments.length;
+    const decimalValue = parseInt(appState.sha512Hmac.substring(0, 13), 16);
+
+    const resultsHTML = `
     <div class="results">
       <div id="circle-visualization"></div>
       
@@ -324,68 +347,68 @@ function renderVisualization() {
     </div>
   `;
 
-  resultsContainer.innerHTML = resultsHTML;
-  
-  const circleContainer = document.getElementById('circle-visualization');
-  if (circleContainer) {
-    circleContainer.appendChild(circleVisualization);
-  }
+    resultsContainer.innerHTML = resultsHTML;
+
+    const circleContainer = document.getElementById('circle-visualization');
+    if (circleContainer) {
+        circleContainer.appendChild(circleVisualization);
+    }
 }
 
 function getSegmentLegend() {
-  const margin = getMarginFromRTP();
-  const uniqueMultipliers = MultiplierResolver.getUniqueMultipliers(appState.riskLevel, margin);
-  
-  if (!uniqueMultipliers.length) return '';
-  
-  return uniqueMultipliers.map(({ multiplier, color }) => {
-    const count = appState.segments.filter(s => s.multiplier === multiplier).length;
-    return `<div class="legend-item">
+    const margin = getMarginFromRTP();
+    const uniqueMultipliers = MultiplierResolver.getUniqueMultipliers(appState.segmentCount, appState.riskLevel, margin);
+
+    if (!uniqueMultipliers.length) return '';
+
+    return uniqueMultipliers.map(({ multiplier, color }) => {
+        const count = appState.segments.filter(s => s.multiplier === multiplier).length;
+        return `<div class="legend-item">
       <span class="legend-color" style="background: ${color}"></span>
       <span class="text">${multiplier}x: ${count} segments</span>
     </div>`;
-  }).join('');
+    }).join('');
 }
 
 function handleServerSeedChange(event) {
-  appState.serverSeed = event.target.value;
-  updateResults();
+    appState.serverSeed = event.target.value;
+    updateResults();
 }
 
 function handleNonceChange(event) {
-  appState.nonce = event.target.value;
-  updateResults();
+    appState.nonce = event.target.value;
+    updateResults();
 }
 
 function handleClientSeedChange(event) {
-  appState.clientSeed = event.target.value;
-  updateResults();
+    appState.clientSeed = event.target.value;
+    updateResults();
 }
 
 function handleRiskChange(event) {
-  appState.riskLevel = event.target.value;
-  updateResults();
+    appState.riskLevel = event.target.value;
+    updateResults();
 }
 
 function handleSegmentsChange(event) {
-  appState.segmentCount = parseInt(event.target.value);
-  updateResults();
+    appState.segmentCount = parseInt(event.target.value);
+    updateResults();
 }
 
 function initApp() {
-  const serverSeedInput = document.getElementById('server-seed-input');
-  const nonceInput = document.getElementById('nonce-input');
-  const clientSeedInput = document.getElementById('client-seed-input');
-  const riskSelect = document.getElementById('risk-input');
-  const segmentsSelect = document.getElementById('segments-input');
+    const serverSeedInput = document.getElementById('server-seed-input');
+    const nonceInput = document.getElementById('nonce-input');
+    const clientSeedInput = document.getElementById('client-seed-input');
+    const riskSelect = document.getElementById('risk-input');
+    const segmentsSelect = document.getElementById('segments-input');
 
-  serverSeedInput.addEventListener('input', handleServerSeedChange);
-  nonceInput.addEventListener('input', handleNonceChange);
-  clientSeedInput.addEventListener('input', handleClientSeedChange);
-  riskSelect.addEventListener('change', handleRiskChange);
-  segmentsSelect.addEventListener('change', handleSegmentsChange);
+    serverSeedInput.addEventListener('input', handleServerSeedChange);
+    nonceInput.addEventListener('input', handleNonceChange);
+    clientSeedInput.addEventListener('input', handleClientSeedChange);
+    riskSelect.addEventListener('change', handleRiskChange);
+    segmentsSelect.addEventListener('change', handleSegmentsChange);
 
-  renderResults();
+    renderResults();
 }
 
 document.addEventListener('DOMContentLoaded', initApp); 

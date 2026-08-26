@@ -1,0 +1,257 @@
+body {
+  margin: 0;
+  padding: 0;
+  background: #20262E;
+  font-family: Helvetica, sans-serif;
+}
+
+.body {
+  padding: 8px;
+}
+
+*::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  position: absolute;
+  background: #374353FF;
+  border-radius: 5px;
+}
+
+.inputs-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: 12px;
+  line-height: 14px;
+  color: white;
+}
+
+.input {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 4px;
+}
+
+.input:focus {
+  outline: none;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.divider {
+  width: 100%;
+  height: 1px;
+  background: gray;
+}
+
+.text {
+  color: white;
+  font-size: 14px;
+  font-style: italic;
+}
+
+.subtitle {
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  width: 100%;
+  overflow-x: auto;
+}
+
+.keno-board {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: fit-content;
+}
+
+.board-row {
+  display: flex;
+  gap: 6px;
+}
+
+.cell {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.cell.empty {
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid #374353;
+  color: #757070;
+}
+
+.cell.drawn {
+  background-color: rgba(59, 130, 246, 0.3);
+  border: 1px solid #3B82F6;
+  color: white;
+}
+
+.calculation-explanation {
+  margin-top: 8px;
+  color: white;
+}
+
+.explanation-step {
+  margin-bottom: 8px;
+  padding: 8px;
+  border-radius: 4px;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.rates-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin: 8px 0;
+}
+
+.rate-item {
+  color: white;
+  font-size: 13px;
+}
+
+.rate-hex {
+  color: #ffd966;
+}
+
+.toggle-explanation {
+  text-align: center;
+}
+
+.toggle-explanation.blue button.button {
+  background-color: #66a5ff;
+}
+
+.button {
+  color: white;
+  border: none;
+  background-color: #dc3545;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s;
+}
+
+.button:hover {
+  background-color: #c82333;
+}
+
+.calculation-explanation h3 {
+  margin-bottom: 8px;
+  color: white;
+  font-weight: bold;
+}
+
+.explanation-step h4 {
+  color: white;
+  margin: 0 0 8px;
+  font-weight: bold;
+}
+
+.explanation-step p {
+  color: white;
+  margin-bottom: 8px;
+}
+
+.explanation-step pre {
+  background-color: rgba(0, 0, 0, 0.3);
+  padding: 8px;
+  overflow-x: auto;
+  color: white;
+}
+
+strong {
+  color: #66a5ff;
+  margin-right: 5px;
+}
+
+.base-row-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.base-row-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.item-value {
+  padding: 4px 8px;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.item-value.item-drawn {
+  background-color: rgba(59, 130, 246, 0.3);
+  color: #66a5ff;
+}
+
+.header {
+  background: #2A2A2A;
+  display: flex;
+  padding: 4px 8px;
+  justify-content: space-between;
+  align-items: center;
+  align-self: stretch;
+}
+
+.github-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #8A8A8A;
+}
+
+.github-link {
+  display: flex;
+  padding: 8px;
+  justify-content: center;
+  align-items: center;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.07);
+  color: #FAFAFA;
+  text-align: center;
+  font-variant-numeric: lining-nums tabular-nums;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 16px;
+  transition: opacity 0.2s ease;
+  text-decoration: none;
+}
+
+.github-link:hover {
+  opacity: 0.8;
+}

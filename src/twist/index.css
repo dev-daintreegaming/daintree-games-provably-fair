@@ -1,0 +1,345 @@
+body {
+  margin: 0;
+  padding: 0;
+  background: #20262E;
+  font-family: Helvetica, sans-serif;
+}
+
+.body {
+  padding: 8px;
+}
+
+*::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  position: absolute;
+  background: #374353FF;
+  border-radius: 5px;
+}
+
+.inputs-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: 12px;
+  line-height: 14px;
+  color: white;
+}
+
+.input {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 4px;
+}
+
+.input:focus {
+  outline: none;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.divider {
+  width: 100%;
+  height: 1px;
+  background: gray;
+}
+
+.text {
+  color: white;
+  font-size: 14px;
+  font-style: italic;
+}
+
+.subtitle {
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  width: 100%;
+  overflow-x: auto;
+}
+
+.paleText {
+  color: #757070;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.horizontal-scroll {
+  white-space: nowrap;
+  overflow-x: auto;
+}
+
+.error {
+  color: #F87171;
+  font-size: 14px;
+}
+
+.result-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  border-radius: 4px;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.result-line .text {
+  font-style: normal;
+}
+
+.outcome-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 12px 0;
+}
+
+.outcome-card {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px;
+  min-width: 96px;
+  border-radius: 4px;
+  border: 1px solid #374353;
+  background-color: rgba(255, 255, 255, 0.05);
+  color: #757070;
+  font-size: 12px;
+}
+
+.outcome-label {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.outcome-weight,
+.outcome-range {
+  font-size: 11px;
+}
+
+.outcome-card.resolved {
+  color: white;
+}
+
+.outcome-card.water_gem.resolved {
+  border-color: #3B82F6;
+  background-color: rgba(59, 130, 246, 0.3);
+}
+
+.outcome-card.earth_gem.resolved {
+  border-color: #16A34A;
+  background-color: rgba(22, 163, 74, 0.3);
+}
+
+.outcome-card.fire_gem.resolved {
+  border-color: #EA580C;
+  background-color: rgba(234, 88, 12, 0.3);
+}
+
+.outcome-card.air.resolved {
+  border-color: #E5E5E5;
+  background-color: rgba(229, 229, 229, 0.25);
+}
+
+.outcome-card.death.resolved {
+  border-color: #DC3545;
+  background-color: rgba(220, 53, 69, 0.3);
+}
+
+.sectors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 12px 0;
+}
+
+.sector {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 12px;
+  border-radius: 4px;
+  border: 1px solid #374353;
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.sector.drawn {
+  border-color: #FFD966;
+  background-color: rgba(255, 217, 102, 0.25);
+}
+
+.sector-index {
+  color: #757070;
+  font-size: 11px;
+}
+
+.sector-value {
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.calculation-explanation {
+  margin-top: 8px;
+  color: white;
+}
+
+.calculation-explanation h3 {
+  margin-bottom: 8px;
+  color: white;
+  font-weight: bold;
+}
+
+.explanation-step {
+  margin-bottom: 8px;
+  padding: 8px;
+  border-radius: 4px;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.explanation-step h4 {
+  color: white;
+  margin: 0 0 8px;
+  font-weight: bold;
+}
+
+.explanation-step p {
+  color: white;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.explanation-step pre {
+  background-color: rgba(0, 0, 0, 0.3);
+  padding: 8px;
+  overflow-x: auto;
+  color: white;
+}
+
+.rate-hex {
+  color: #FFD966;
+}
+
+.walk {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.walk-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background-color: rgba(0, 0, 0, 0.2);
+  color: #757070;
+  font-size: 13px;
+}
+
+.walk-row.resolved {
+  background-color: rgba(102, 165, 255, 0.2);
+  color: white;
+}
+
+.walk-label {
+  min-width: 110px;
+  font-weight: 600;
+}
+
+.walk-weight {
+  min-width: 56px;
+}
+
+.walk-cumulative {
+  min-width: 120px;
+}
+
+.walk-comparison {
+  flex: 1;
+}
+
+.toggle-explanation {
+  text-align: center;
+}
+
+.button {
+  color: white;
+  border: none;
+  background-color: #dc3545;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s;
+}
+
+.button:hover {
+  background-color: #c82333;
+}
+
+strong {
+  color: #66a5ff;
+  margin-right: 5px;
+}
+
+.header {
+  background: #2A2A2A;
+  display: flex;
+  padding: 4px 8px;
+  justify-content: space-between;
+  align-items: center;
+  align-self: stretch;
+}
+
+.github-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #8A8A8A;
+}
+
+.github-link {
+  display: flex;
+  padding: 8px;
+  justify-content: center;
+  align-items: center;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.07);
+  color: #FAFAFA;
+  text-align: center;
+  font-variant-numeric: lining-nums tabular-nums;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 16px;
+  transition: opacity 0.2s ease;
+  text-decoration: none;
+}
+
+.github-link:hover {
+  opacity: 0.8;
+}

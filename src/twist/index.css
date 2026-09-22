@@ -343,3 +343,297 @@ strong {
 .github-link:hover {
   opacity: 0.8;
 }
+
+.range-inputs {
+  display: flex;
+  gap: 6px;
+}
+
+.range-field {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.range-field .label {
+  color: #757070;
+}
+
+/* --- session switcher ------------------------------------------------------ */
+
+.session-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #2F3A49;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.spin-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.spin-nav-label {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 1px;
+  text-align: center;
+  overflow-x: visible;
+}
+
+.spin-nav-position {
+  color: #757070;
+  font-size: 11px;
+  font-weight: 400;
+}
+
+.nav-button {
+  flex: 0 0 auto;
+  min-width: 68px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  background-color: rgba(255, 255, 255, 0.08);
+  color: #E5E7EB;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.nav-button:hover {
+  background-color: rgba(102, 165, 255, 0.25);
+}
+
+.nav-button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.nav-button:disabled:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.spin-strip {
+  display: flex;
+  gap: 5px;
+  padding: 2px 2px 8px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+}
+
+.spin-chip {
+  position: relative;
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 2px;
+  min-width: 74px;
+  padding: 7px 8px 6px;
+  overflow: hidden;
+  border: 1px solid #2F3A49;
+  border-radius: 6px;
+  background-color: rgba(255, 255, 255, 0.04);
+  color: #9AA4B2;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s, transform 0.15s;
+}
+
+/* the accent bar is the symbol, so a whole session reads at a glance */
+.spin-chip::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background-color: #4B5563;
+}
+
+.spin-chip.water_gem::before { background-color: #3B82F6; }
+.spin-chip.earth_gem::before { background-color: #16A34A; }
+.spin-chip.fire_gem::before { background-color: #EA580C; }
+.spin-chip.air::before { background-color: #9CA3AF; }
+.spin-chip.death::before { background-color: #DC3545; }
+
+.spin-chip:hover {
+  border-color: #66A5FF;
+  background-color: rgba(102, 165, 255, 0.12);
+}
+
+.spin-chip-nonce {
+  color: #6B7280;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.spin-chip-outcome {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.spin-chip-coeff {
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.spin-chip-paid {
+  color: #FFD966;
+  font-size: 10px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.spin-chip.selected {
+  border-color: #66A5FF;
+  background-color: rgba(102, 165, 255, 0.18);
+  color: white;
+  transform: translateY(-1px);
+}
+
+.spin-chip.selected .spin-chip-nonce {
+  color: #66A5FF;
+}
+
+/* --- playfield wheel -------------------------------------------------------- */
+
+.wheel-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 20px;
+  margin: 12px 0;
+}
+
+.wheel {
+  flex: 0 0 auto;
+  width: 300px;
+  max-width: 100%;
+  height: auto;
+}
+
+.wheel-segment {
+  fill: rgba(255, 255, 255, 0.05);
+  stroke: #2F3A49;
+  stroke-width: 1;
+}
+
+/* climbed: every step below and including the marker, in the ring's own colour */
+.wheel-segment.water.climbed { fill: rgba(59, 130, 246, 0.4); stroke: #3B82F6; }
+.wheel-segment.earth.climbed { fill: rgba(22, 163, 74, 0.4); stroke: #16A34A; }
+.wheel-segment.fire.climbed { fill: rgba(234, 88, 12, 0.4); stroke: #EA580C; }
+
+/* what this spin did: the one segment it climbed, at full strength and ringed in white */
+.wheel-segment.water.gained { fill: #3B82F6; }
+.wheel-segment.earth.gained { fill: #16A34A; }
+.wheel-segment.fire.gained { fill: #EA580C; }
+
+.wheel-segment.gained {
+  stroke: #FFFFFF;
+  stroke-width: 2.5;
+}
+
+/* or the segments death made it give up */
+.wheel-segment.lost {
+  fill: rgba(220, 53, 69, 0.15);
+  stroke: #DC3545;
+  stroke-width: 2;
+  stroke-dasharray: 4 3;
+}
+
+.wheel-segment.reward:not(.gained) {
+  stroke: #6B7280;
+  stroke-dasharray: 3 3;
+}
+
+.wheel-label {
+  fill: #7E8899;
+  font-family: Helvetica, sans-serif;
+  font-size: 9px;
+  font-weight: 600;
+  text-anchor: middle;
+  dominant-baseline: middle;
+  pointer-events: none;
+  stroke: none;
+}
+
+.wheel-label.climbed,
+.wheel-label.lost {
+  fill: #E5E7EB;
+}
+
+.wheel-label.gained {
+  fill: white;
+  font-size: 10px;
+  font-weight: bold;
+}
+
+.wheel-hub {
+  fill: #161B22;
+  stroke: #2F3A49;
+  stroke-width: 1;
+}
+
+.wheel-hub-value {
+  fill: white;
+  font-family: Helvetica, sans-serif;
+  font-size: 12px;
+  font-weight: bold;
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+
+.wheel-legend {
+  display: flex;
+  flex: 1 1 200px;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.wheel-legend-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #9AA4B2;
+  font-size: 13px;
+}
+
+.wheel-swatch {
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  border: 1px solid #2F3A49;
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.wheel-swatch.climbed {
+  border-color: #6B7C93;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.6), rgba(22, 163, 74, 0.6) 50%, rgba(234, 88, 12, 0.6));
+}
+
+.wheel-swatch.gained {
+  border: 2px solid #FFFFFF;
+}
+
+.wheel-swatch.gained.water { background-color: #3B82F6; }
+.wheel-swatch.gained.earth { background-color: #16A34A; }
+.wheel-swatch.gained.fire { background-color: #EA580C; }
+
+.wheel-swatch.lost {
+  border: 2px dashed #DC3545;
+  background-color: rgba(220, 53, 69, 0.15);
+}
+
+.wheel-legend-steps {
+  margin-top: 2px;
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+}

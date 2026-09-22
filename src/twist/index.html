@@ -35,16 +35,6 @@
                 </div>
 
                 <div class="field">
-                    <div class="label">Nonce</div>
-                    <input
-                        type="text"
-                        placeholder="Enter nonce"
-                        class="input"
-                        id="nonce-input"
-                    />
-                </div>
-
-                <div class="field">
                     <div class="label">Client seed</div>
                     <input
                         type="text"
@@ -52,6 +42,36 @@
                         class="input"
                         id="client-seed-input"
                     />
+                </div>
+
+                <div class="field">
+                    <div class="label">
+                        Nonce range — the session is replayed from an empty playfield on the starting
+                        nonce (at most <span id="max-spins-display"></span> spins at a time)
+                    </div>
+                    <div class="range-inputs">
+                        <div class="range-field">
+                            <div class="label">From</div>
+                            <input
+                                type="number"
+                                class="input"
+                                id="starting-nonce-input"
+                                min="0"
+                                step="1"
+                            />
+                        </div>
+
+                        <div class="range-field">
+                            <div class="label">To</div>
+                            <input
+                                type="number"
+                                class="input"
+                                id="finish-nonce-input"
+                                min="0"
+                                step="1"
+                            />
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -69,7 +89,7 @@
                 </div>
 
                 <div class="field">
-                    <div class="label">sha512Hmac(clientSeed:nonce)</div>
+                    <div class="label">sha512Hmac(clientSeed:nonce) — selected spin</div>
                     <input
                         type="text"
                         class="input"
@@ -79,7 +99,7 @@
                 </div>
 
                 <div class="field">
-                    <div class="label">sha512Hmac(clientSeed:nonce:bonus-wheel)</div>
+                    <div class="label">sha512Hmac(clientSeed:nonce:bonus-wheel) — selected spin</div>
                     <input
                         type="text"
                         class="input"
@@ -92,9 +112,17 @@
             <div class="divider"></div>
 
             <div class="text">
-                Every spin draws one of five symbols from a weighted table of the session RTP
-                (<span id="rtp-display"></span>):
+                Every spin draws one of five symbols. There is no probability table: the five
+                probabilities are derived from the playfield the spin is taken from and the session
+                RTP (<span id="rtp-display"></span>), so that one spin returns exactly that key from
+                every playfield a marker can rest on. The playfield is never entered by hand — each
+                spin is resolved from the one the nonce before it left behind, so the seeds and the
+                range are all it takes. Pick any spin below to see it worked through.
             </div>
+
+            <div id="session-container"></div>
+
+            <div class="divider"></div>
 
             <div id="outcome-container"></div>
 

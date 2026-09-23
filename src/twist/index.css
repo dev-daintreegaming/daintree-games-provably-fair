@@ -461,6 +461,17 @@ strong {
 .spin-chip.fire_gem::before { background-color: #EA580C; }
 .spin-chip.air::before { background-color: #9CA3AF; }
 .spin-chip.death::before { background-color: #DC3545; }
+.spin-chip.cashout::before { background-color: #FFD966; }
+
+/* a cash-out is the player's own move, not a drawn spin — the dashed edge says so at a glance */
+.spin-chip.cashout {
+  border-style: dashed;
+  border-color: rgba(255, 217, 102, 0.45);
+}
+
+.spin-chip.cashout .spin-chip-outcome {
+  color: #FFD966;
+}
 
 .spin-chip:hover {
   border-color: #66A5FF;
@@ -539,6 +550,14 @@ strong {
   stroke-width: 2.5;
 }
 
+/* or the segments a partial cash-out was paid for — given up, but bought, so not death's red */
+.wheel-segment.cashed {
+  fill: rgba(255, 217, 102, 0.18);
+  stroke: #FFD966;
+  stroke-width: 2;
+  stroke-dasharray: 4 3;
+}
+
 /* or the segments death made it give up */
 .wheel-segment.lost {
   fill: rgba(220, 53, 69, 0.15);
@@ -564,6 +583,7 @@ strong {
 }
 
 .wheel-label.climbed,
+.wheel-label.cashed,
 .wheel-label.lost {
   fill: #E5E7EB;
 }
@@ -629,6 +649,11 @@ strong {
 .wheel-swatch.lost {
   border: 2px dashed #DC3545;
   background-color: rgba(220, 53, 69, 0.15);
+}
+
+.wheel-swatch.cashed {
+  border: 2px dashed #FFD966;
+  background-color: rgba(255, 217, 102, 0.18);
 }
 
 .wheel-legend-steps {

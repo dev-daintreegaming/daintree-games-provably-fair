@@ -73,6 +73,20 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="field">
+                    <div class="label">
+                        Partial cash-outs after nonces — optional, copied from the bet details.
+                        A cash-out is not drawn from a hash, so it cannot be replayed from the seeds;
+                        repeat a nonce once per cash-out taken after it.
+                    </div>
+                    <input
+                        type="text"
+                        placeholder="e.g. 1, 5"
+                        class="input"
+                        id="partial-cashouts-input"
+                    />
+                </div>
             </div>
 
             <div class="divider"></div>
@@ -89,7 +103,7 @@
                 </div>
 
                 <div class="field">
-                    <div class="label">sha512Hmac(clientSeed:nonce) — selected spin</div>
+                    <div class="label">sha512Hmac(clientSeed:nonce) — selected nonce</div>
                     <input
                         type="text"
                         class="input"
@@ -99,7 +113,7 @@
                 </div>
 
                 <div class="field">
-                    <div class="label">sha512Hmac(clientSeed:nonce:bonus-wheel) — selected spin</div>
+                    <div class="label">sha512Hmac(clientSeed:nonce:bonus-wheel) — selected nonce</div>
                     <input
                         type="text"
                         class="input"
@@ -116,8 +130,9 @@
                 probabilities are derived from the playfield the spin is taken from and the session
                 RTP (<span id="rtp-display"></span>), so that one spin returns exactly that key from
                 every playfield a marker can rest on. The playfield is never entered by hand — each
-                spin is resolved from the one the nonce before it left behind, so the seeds and the
-                range are all it takes. Pick any spin below to see it worked through.
+                spin is resolved from the one the event before it left behind, so the seeds, the
+                range and any partial cash-outs taken along the way are all it takes. Pick any step
+                below to see it worked through.
             </div>
 
             <div id="session-container"></div>

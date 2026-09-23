@@ -347,23 +347,45 @@ class TwistRoundSettler {
     return coeff;
   }
 
+  // A step can be cashed out only while some ring stands past its first step. Taking it clears a
+  // step from every non-empty ring, so it is not offered when that would wipe the playfield for
+  // single steps.
+  static canPartialCashout(step) {
+    return step.some((value) => value >= 2);
+  }
+
   // Amount a partial cashout pays, in stake units: the coefficient given up by stepping every
   // non-empty ring back one. Zero unless some ring stands on its second step or higher.
   static partialCashoutMultiplier(step) {
-    const stepped = step.slice();
-    let allowed = false;
-    for (let ring = 0; ring < stepped.length; ring++) {
-      if (stepped[ring] >= 2) {
-        allowed = true;
-      }
-      stepped[ring] = Math.max(0, stepped[ring] - 1);
-    }
-
-    if (!allowed) {
+    if (!this.canPartialCashout(step)) {
       return 0.0;
     }
 
+    const stepped = step.map((value) => Math.max(0, value - 1));
+
     return this.coeffOf(step) - this.coeffOf(stepped);
+  }
+
+  // Applies a partial cashout to state in place. Unlike a spin this is the player's own action —
+  // nothing is drawn for it, so no hash proves it — but it moves every non-empty ring back a step,
+  // and the spins after it are resolved from what it leaves behind. That is why a replay has to be
+  // told it happened.
+  static applyPartialCashout(state, maxWinMultiplier) {
+    const payoutMultiplier = this.partialCashoutMultiplier(state.step);
+
+    const application = {
+      outcomeIndex: -1,
+      ring: TwistSegmentTable.RING_NONE,
+      payoutMultiplier,
+      topRewardedRing: TwistSegmentTable.RING_NONE,
+      bonusWheelDrawn: false,
+      maxWinReached: false,
+    };
+
+    this.stepBackAll(state);
+    this.recalculateCoeff(state, maxWinMultiplier, application);
+
+    return application;
   }
 
   static applyGem(state, ring, bonusWheelMultiplier, application) {
@@ -433,6 +455,7 @@ class RoundResultResolver {
     );
 
     return {
+      kind: 'spin',
       nonce,
       roundHash,
       bonusWheelHash,
@@ -449,15 +472,40 @@ class RoundResultResolver {
       application,
     };
   }
+
+  // Settles one partial cashout taken from `step`. It carries no hash of its own — the player
+  // decides when to take it — so the bet details record which nonce it followed, and that is what
+  // puts it back in the right place here.
+  static getPartialCashoutData(nonce, ordinal, ordinalCount, step) {
+    const state = { coeffMultiplier: TwistRoundSettler.coeffOf(step), step: step.slice() };
+    const coeffBefore = state.coeffMultiplier;
+    const application = TwistRoundSettler.applyPartialCashout(state, Number.MAX_VALUE);
+
+    return {
+      kind: 'cashout',
+      nonce,
+      ordinal,
+      ordinalCount,
+      stepBefore: step.slice(),
+      stepAfter: state.step.slice(),
+      coeffBefore,
+      coeffAfter: state.coeffMultiplier,
+      payoutMultiplier: application.payoutMultiplier,
+      application,
+    };
+  }
 }
 
 // Replays a whole nonce range. The playfield is not an input: the session opens empty on the
-// starting nonce and every later playfield is what the spin before it left behind, so the seeds and
-// the range are all it takes to know the state at any point.
+// starting nonce and every later playfield is what the event before it left behind, so the seeds,
+// the range and the cash-outs taken along the way are all it takes to know the state at any point.
+//
+// A partial cashout is the one thing in the timeline that is not drawn from a hash, so it cannot be
+// inferred from the seeds — it comes in from the bet details as the nonce it was taken after.
 class SessionResolver {
   static MAX_SPINS = 1000;
 
-  static resolveSession(serverSeed, clientSeed, startingNonce, finishNonce, rtp) {
+  static resolveSession(serverSeed, clientSeed, startingNonce, finishNonce, rtp, partialCashoutNonces) {
     if (!Number.isInteger(startingNonce) || startingNonce < 0) {
       throw new Error(`Starting nonce must be a non-negative whole number, got: ${startingNonce}.`);
     }
@@ -475,6 +523,22 @@ class SessionResolver {
       throw new Error(`Range covers ${length} spins; this page replays at most ${this.MAX_SPINS} at a time.`);
     }
 
+    // Several cash-outs can be taken back to back after the same spin, so the nonce is allowed to
+    // repeat and the count is what matters.
+    const cashoutCounts = new Map();
+    partialCashoutNonces.forEach((nonce) => {
+      if (nonce < startingNonce || nonce > finishNonce) {
+        throw new Error(
+          `Partial cash-out after nonce ${nonce} falls outside the replayed range `
+          + `${startingNonce}\u2013${finishNonce}.`,
+        );
+      }
+
+      cashoutCounts.set(nonce, (cashoutCounts.get(nonce) || 0) + 1);
+    });
+
+    // Spins and cash-outs interleaved, in the order the playfield actually went through them.
+    const events = [];
     const spins = [];
     let step = [0, 0, 0];
 
@@ -482,11 +546,29 @@ class SessionResolver {
       const spin = RoundResultResolver.getData(serverSeed, nonce, clientSeed, rtp, step);
       step = spin.stepAfter;
       spins.push(spin);
+      events.push(spin);
+
+      const taken = cashoutCounts.get(nonce) || 0;
+      for (let ordinal = 1; ordinal <= taken; ordinal++) {
+        // A cash-out the game would never have offered means the range or the list is wrong, and
+        // saying so beats replaying a playfield that never existed.
+        if (!TwistRoundSettler.canPartialCashout(step)) {
+          throw new Error(
+            `Partial cash-out ${ordinal} of ${taken} after nonce ${nonce} could not have been taken: `
+            + `the playfield [${step.join(', ')}] has no ring past its first step.`,
+          );
+        }
+
+        const cashout = RoundResultResolver.getPartialCashoutData(nonce, ordinal, taken, step);
+        step = cashout.stepAfter;
+        events.push(cashout);
+      }
     }
 
     return {
       sha256: ShaUtils.sha256(serverSeed).toString(),
       spins,
+      events,
     };
   }
 }
@@ -496,18 +578,54 @@ let appState = {
   clientSeed: '',
   startingNonce: '1',
   finishNonce: '20',
+  partialCashouts: '',
   sha256: '',
   session: null,
   selectedIndex: 0,
-  // Until a spin is picked by hand the view follows the end of the range, so widening it keeps
-  // showing the latest spin rather than snapping back to the start.
+  // Until an event is picked by hand the view follows the end of the range, so widening it keeps
+  // showing the latest one rather than snapping back to the start.
   followsLast: true,
   error: '',
   showExplanation: true,
 };
 
-function selectedSpin() {
-  return appState.session ? appState.session.spins[appState.selectedIndex] : null;
+// The selected point in the timeline: a spin, or a partial cashout taken after one.
+function selectedEvent() {
+  return appState.session ? appState.session.events[appState.selectedIndex] : null;
+}
+
+// The spin a selection belongs to — itself, or the spin a cashout was taken after. It is what the
+// hash fields show, since a cashout draws nothing of its own.
+function selectedRoundSpin() {
+  const event = selectedEvent();
+  if (!event) {
+    return null;
+  }
+
+  return event.kind === 'spin'
+    ? event
+    : appState.session.spins.find((spin) => spin.nonce === event.nonce) || null;
+}
+
+function eventPayout(event) {
+  return event.kind === 'cashout' ? event.payoutMultiplier : event.application.payoutMultiplier;
+}
+
+// Partial cash-outs as the bet details list them: nonces the cash-out was taken after, separated by
+// anything reasonable, repeated once per cash-out taken after that same nonce.
+function parsePartialCashoutNonces(raw) {
+  const text = String(raw).trim();
+  if (!text) {
+    return [];
+  }
+
+  return text.split(/[\s,;]+/).filter(Boolean).map((token) => {
+    if (!/^\d+$/.test(token)) {
+      throw new Error(`Partial cash-outs are a list of nonces; "${token}" is not one.`);
+    }
+
+    return Number(token);
+  });
 }
 
 function cumulativeRanges(probabilities) {
@@ -565,14 +683,15 @@ function updateResults() {
       Number(appState.startingNonce),
       Number(appState.finishNonce),
       getRTP(),
+      parsePartialCashoutNonces(appState.partialCashouts),
     );
 
     appState.sha256 = session.sha256;
     appState.session = session;
     appState.selectedIndex = appState.followsLast
-      ? session.spins.length - 1
+      ? session.events.length - 1
       // Keep a hand-picked selection inside the range when it shrinks under the cursor.
-      : Math.min(appState.selectedIndex, session.spins.length - 1);
+      : Math.min(appState.selectedIndex, session.events.length - 1);
     appState.error = '';
   } catch (error) {
     console.error('Error calculating results:', error);
@@ -585,7 +704,7 @@ function updateResults() {
 }
 
 function renderResults() {
-  const spin = selectedSpin();
+  const spin = selectedRoundSpin();
 
   document.getElementById('sha256-input').value = appState.sha256;
   document.getElementById('round-hash-input').value = spin ? spin.roundHash : '';
@@ -596,7 +715,8 @@ function renderResults() {
   renderExplanation();
 }
 
-// The switcher: every spin of the range as a chip, the selected one highlighted.
+// The switcher: every event of the range as a chip — the spins, and the partial cash-outs taken
+// between them.
 function renderSession() {
   const sessionContainer = document.getElementById('session-container');
 
@@ -607,29 +727,48 @@ function renderSession() {
     return;
   }
 
-  const { spins } = appState.session;
+  const { events } = appState.session;
 
-  const chipsHTML = spins
-    .map((spin, index) => {
-      const outcome = TwistSegmentTable.OUTCOMES[spin.outcomeIndex];
-      const paid = spin.application.payoutMultiplier > 0
-        ? `<span class="spin-chip-paid">+${formatCoeff(spin.application.payoutMultiplier)}x</span>`
+  const chipsHTML = events
+    .map((event, index) => {
+      const selected = index === appState.selectedIndex ? 'selected' : '';
+      const payout = eventPayout(event);
+      const paid = payout > 0
+        ? `<span class="spin-chip-paid">+${formatCoeff(payout)}x</span>`
         : '';
+
+      if (event.kind === 'cashout') {
+        return `
+          <button type="button" class="spin-chip cashout ${selected}" data-index="${index}">
+            <span class="spin-chip-nonce">after #${event.nonce}</span>
+            <span class="spin-chip-outcome">Cash out</span>
+            <span class="spin-chip-coeff">${formatCoeff(event.coeffAfter)}x</span>
+            ${paid}
+          </button>
+        `;
+      }
+
+      const outcome = TwistSegmentTable.OUTCOMES[event.outcomeIndex];
 
       return `
         <button
           type="button"
-          class="spin-chip ${outcome.key.toLowerCase()} ${index === appState.selectedIndex ? 'selected' : ''}"
+          class="spin-chip ${outcome.key.toLowerCase()} ${selected}"
           data-index="${index}"
         >
-          <span class="spin-chip-nonce">#${spin.nonce}</span>
+          <span class="spin-chip-nonce">#${event.nonce}</span>
           <span class="spin-chip-outcome">${outcome.short}</span>
-          <span class="spin-chip-coeff">${formatCoeff(spin.coeffAfter)}x</span>
+          <span class="spin-chip-coeff">${formatCoeff(event.coeffAfter)}x</span>
           ${paid}
         </button>
       `;
     })
     .join('');
+
+  const current = events[appState.selectedIndex];
+  const title = current.kind === 'cashout'
+    ? `Cash-out ${current.ordinal} of ${current.ordinalCount} after nonce ${current.nonce}`
+    : `Nonce ${current.nonce}`;
 
   sessionContainer.innerHTML = `
     <div class="session-panel">
@@ -638,10 +777,10 @@ function renderSession() {
           \u2039 Prev
         </button>
         <span class="subtitle spin-nav-label">
-          <span>Nonce ${spins[appState.selectedIndex].nonce}</span>
-          <span class="spin-nav-position">spin ${appState.selectedIndex + 1} of ${spins.length} \u00b7 \u2190 \u2192 to step</span>
+          <span>${title}</span>
+          <span class="spin-nav-position">step ${appState.selectedIndex + 1} of ${events.length} \u00b7 \u2190 \u2192 to move</span>
         </span>
-        <button type="button" class="button nav-button" id="next-spin-button" ${appState.selectedIndex === spins.length - 1 ? 'disabled' : ''}>
+        <button type="button" class="button nav-button" id="next-spin-button" ${appState.selectedIndex === events.length - 1 ? 'disabled' : ''}>
           Next \u203a
         </button>
       </div>
@@ -669,13 +808,13 @@ function selectSpin(index) {
     return;
   }
 
-  const clamped = Math.max(0, Math.min(index, appState.session.spins.length - 1));
+  const clamped = Math.max(0, Math.min(index, appState.session.events.length - 1));
   if (clamped === appState.selectedIndex) {
     return;
   }
 
   appState.selectedIndex = clamped;
-  appState.followsLast = clamped === appState.session.spins.length - 1;
+  appState.followsLast = clamped === appState.session.events.length - 1;
   renderResults();
 }
 
@@ -731,6 +870,18 @@ function spinMarks(spin) {
     : stepAfter[ring];
 
   return [{ ring, segment, kind: 'gained' }];
+}
+
+// What an event did to the wheel. A cashout gives up the step every non-empty ring stood on, the
+// same shape death leaves behind — but it is paid for, so it is marked apart from it.
+function eventMarks(event) {
+  if (event.kind !== 'cashout') {
+    return spinMarks(event);
+  }
+
+  return TwistSegmentTable.RINGS
+    .filter((ring) => event.stepBefore[ring.index] > event.stepAfter[ring.index])
+    .map((ring) => ({ ring: ring.index, segment: event.stepBefore[ring.index], kind: 'cashed' }));
 }
 
 function playfieldWheelHTML(step, marks) {
@@ -793,6 +944,10 @@ function playfieldWheelHTML(step, marks) {
 function wheelLegendHTML(step, marks) {
   const gained = marks.find((mark) => mark.kind === 'gained');
   const lost = marks.filter((mark) => mark.kind === 'lost');
+  const cashed = marks.filter((mark) => mark.kind === 'cashed');
+  const ringList = (items) => items
+    .map((mark) => `${TwistSegmentTable.RINGS[mark.ring].label.toLowerCase()} ${mark.segment}`)
+    .join(', ');
 
   const thisSpinHTML = (() => {
     if (gained) {
@@ -810,15 +965,20 @@ function wheelLegendHTML(step, marks) {
       `;
     }
 
-    if (lost.length) {
-      const given = lost
-        .map((mark) => `${TwistSegmentTable.RINGS[mark.ring].label.toLowerCase()} ${mark.segment}`)
-        .join(', ');
+    if (cashed.length) {
+      return `
+        <div class="wheel-legend-row">
+          <span class="wheel-swatch cashed"></span>
+          <span>cashed out on this step — ${ringList(cashed)}</span>
+        </div>
+      `;
+    }
 
+    if (lost.length) {
       return `
         <div class="wheel-legend-row">
           <span class="wheel-swatch lost"></span>
-          <span>given up on this spin — ${given}</span>
+          <span>given up on this spin — ${ringList(lost)}</span>
         </div>
       `;
     }
@@ -843,15 +1003,55 @@ function wheelLegendHTML(step, marks) {
   `;
 }
 
+// A cashout has no symbol, no probabilities and no bonus wheel — only what it did to the playfield.
+function renderCashoutOutcome(cashout) {
+  const { nonce, ordinal, ordinalCount, stepBefore, stepAfter, coeffBefore, coeffAfter, payoutMultiplier } = cashout;
+  const which = ordinalCount > 1 ? ` (${ordinal} of ${ordinalCount} taken there)` : '';
+
+  return `
+    <div class="result-block">
+      <div class="result-line">
+        <span class="text">Partial cash-out: </span>
+        <span class="subtitle">taken after nonce ${nonce}${which}</span>
+      </div>
+      <div class="result-line">
+        <span class="text">Playfield: </span>
+        <span class="subtitle">[${stepBefore.join(', ')}] → [${stepAfter.join(', ')}]</span>
+      </div>
+      <div class="result-line">
+        <span class="text">Coefficient: </span>
+        <span class="subtitle">${formatCoeff(coeffBefore)}x → ${formatCoeff(coeffAfter)}x</span>
+      </div>
+      <div class="result-line">
+        <span class="text">Paid out: </span>
+        <span class="subtitle">${formatCoeff(payoutMultiplier)}x — the coefficient given up</span>
+      </div>
+    </div>
+
+    <div class="text">
+      The playfield after the cash-out. Nothing is drawn for it, so no hash proves it — it is here
+      because it moves every non-empty ring back a step, and the spins after it are resolved from
+      what it leaves behind:
+    </div>
+    ${playfieldWheelHTML(stepAfter, eventMarks(cashout))}
+  `;
+}
+
 function renderOutcome() {
   const outcomeContainer = document.getElementById('outcome-container');
-  const spin = selectedSpin();
+  const event = selectedEvent();
 
-  if (!spin) {
+  if (!event) {
     outcomeContainer.innerHTML = '';
     return;
   }
 
+  if (event.kind === 'cashout') {
+    outcomeContainer.innerHTML = renderCashoutOutcome(event);
+    return;
+  }
+
+  const spin = event;
   const {
     nonce,
     probabilities,
@@ -918,7 +1118,7 @@ function renderOutcome() {
     <div class="text">
       The playfield after this spin — everything climbed so far, with what nonce ${nonce} just added:
     </div>
-    ${playfieldWheelHTML(stepAfter, spinMarks(spin))}
+    ${playfieldWheelHTML(stepAfter, eventMarks(spin))}
 
     <div class="text">
       Probabilities derived for this playfield at RTP ${getRTP()}:
@@ -934,11 +1134,84 @@ function renderOutcome() {
   `;
 }
 
+// A cashout is the one step of the timeline that is not proved by a hash, so its walkthrough is
+// about the arithmetic and about why the replay has to be told it happened at all.
+function cashoutExplanationHTML(cashout) {
+  const { nonce, ordinal, ordinalCount, stepBefore, stepAfter, coeffBefore, coeffAfter, payoutMultiplier } = cashout;
+
+  const ringRowsHTML = TwistSegmentTable.RINGS
+    .map((ring) => {
+      const before = stepBefore[ring.index];
+      const after = stepAfter[ring.index];
+      const given = TwistSegmentTable.ladderValue(ring.index, before) - TwistSegmentTable.ladderValue(ring.index, after);
+
+      return `
+        <div class="walk-row ${before > after ? 'resolved' : ''}">
+          <span class="walk-label">${ring.label}</span>
+          <span class="walk-weight">step ${before} → ${after}</span>
+          <span class="walk-cumulative">
+            ${formatCoeff(TwistSegmentTable.ladderValue(ring.index, before))}
+            − ${formatCoeff(TwistSegmentTable.ladderValue(ring.index, after))}
+          </span>
+          <span class="walk-comparison">
+            ${before > after ? `gives up <b>${formatCoeff(given)}</b>` : 'already empty — nothing to give up'}
+          </span>
+        </div>
+      `;
+    })
+    .join('');
+
+  const which = ordinalCount > 1 ? ` (${ordinal} of ${ordinalCount} taken after that nonce)` : '';
+
+  return `
+    <div class="calculation-explanation">
+      <h3>Partial cash-out taken after nonce ${nonce}${which}</h3>
+
+      <p>
+        Every other step of this replay comes out of a hash. This one does not: a partial cash-out is
+        the player's own action, taken between spins, so there is nothing to verify about it. It is
+        entered by hand from the bet details because it moves the playfield, and a playfield that is
+        wrong here makes every spin after it replay wrong too.
+      </p>
+
+      <div class="explanation-step">
+        <h4>Step 1: It was available</h4>
+        <p>
+          A step can be cashed out only while some ring stands past its first step, so that giving
+          one up from every non-empty ring is not just clearing the board. The playfield was
+          [${stepBefore.join(', ')}].
+        </p>
+      </div>
+
+      <div class="explanation-step">
+        <h4>Step 2: Every non-empty ring gives up a step</h4>
+        <div class="walk">${ringRowsHTML}</div>
+        <p>Playfield [${stepBefore.join(', ')}] → <b>[${stepAfter.join(', ')}]</b>.</p>
+      </div>
+
+      <div class="explanation-step">
+        <h4>Step 3: The coefficient given up is what is paid</h4>
+        <p>
+          ${formatCoeff(coeffBefore)}x − ${formatCoeff(coeffAfter)}x = <b>${formatCoeff(payoutMultiplier)}x</b>
+          — a coefficient is the sum of the three markers' ladder values, so the payout is simply the
+          difference between the playfield before and the one after.
+        </p>
+      </div>
+
+      <div class="toggle-explanation">
+        <button class="button" onclick="hideExplanation()">
+          Hide Explanation
+        </button>
+      </div>
+    </div>
+  `;
+}
+
 function renderExplanation() {
   const explanationContainer = document.getElementById('explanation-container');
-  const spin = selectedSpin();
+  const event = selectedEvent();
 
-  if (!spin) {
+  if (!event) {
     explanationContainer.innerHTML = '';
     return;
   }
@@ -954,6 +1227,12 @@ function renderExplanation() {
     return;
   }
 
+  if (event.kind === 'cashout') {
+    explanationContainer.innerHTML = cashoutExplanationHTML(event);
+    return;
+  }
+
+  const spin = event;
   const {
     nonce,
     roundHash,
@@ -975,8 +1254,10 @@ function renderExplanation() {
   const rtp = getRTP();
   const parts = TwistSegmentTable.NON_ADVANCING_PARTS;
   const serverSeed = escapeHtml(appState.serverSeed);
-  const isFirst = appState.selectedIndex === 0;
-  const isLast = appState.selectedIndex === appState.session.spins.length - 1;
+  // Neighbours in the timeline, not in the nonce range: a cash-out can sit on either side of a spin
+  // and it is what the playfield actually came from, or went to.
+  const previousEvent = appState.session.events[appState.selectedIndex - 1] || null;
+  const nextEvent = appState.session.events[appState.selectedIndex + 1] || null;
 
   const rateHex = roundHash.slice(0, TwistSegmentResolver.RATE_HEX_DIGITS);
   const rateTermsHTML = Array.from(rateHex)
@@ -1036,16 +1317,28 @@ function renderExplanation() {
   const wheelRateHex = bonusWheelHash.slice(0, TwistSegmentResolver.RATE_HEX_DIGITS);
   const sectorCount = TwistBonusWheelTable.sectorCount();
 
-  const playfieldSourceHTML = isFirst
-    ? `<p>
-         This is the first spin of the range, so it is taken from an empty playfield
-         [${stepBefore.join(', ')}] — every session opens with all three markers at the bottom.
-       </p>`
-    : `<p>
-         The playfield is not an input: [${stepBefore.join(', ')}] is exactly what the spin on nonce
-         ${nonce - 1} left behind, which is why replaying the range from its start is enough to know
-         the state here.
-       </p>`;
+  const playfieldSourceHTML = (() => {
+    if (!previousEvent) {
+      return `<p>
+                This is the first spin of the range, so it is taken from an empty playfield
+                [${stepBefore.join(', ')}] — every session opens with all three markers at the bottom.
+              </p>`;
+    }
+
+    if (previousEvent.kind === 'cashout') {
+      return `<p>
+                The playfield is not an input: [${stepBefore.join(', ')}] is what the partial cash-out
+                taken after nonce ${previousEvent.nonce} left behind — the step before this one in the
+                strip above.
+              </p>`;
+    }
+
+    return `<p>
+              The playfield is not an input: [${stepBefore.join(', ')}] is exactly what the spin on nonce
+              ${previousEvent.nonce} left behind, which is why replaying the range from its start is
+              enough to know the state here.
+            </p>`;
+  })();
 
   const settlementHTML = (() => {
     if (outcomeIndex === TwistSegmentTable.OUTCOME_AIR) {
@@ -1187,9 +1480,18 @@ function renderExplanation() {
           markers' ladder values, recomputed rather than accumulated.
         </p>
         <p>
-          ${isLast
-            ? `That playfield is where the range ends. Raise the finish nonce to carry it into nonce ${nonce + 1}.`
-            : `That playfield is what the spin on nonce ${nonce + 1} is resolved from — the next spin in the strip above.`}
+          ${(() => {
+            if (!nextEvent) {
+              return `That playfield is where the range ends. Raise the finish nonce to carry it into nonce ${nonce + 1}.`;
+            }
+
+            if (nextEvent.kind === 'cashout') {
+              return 'A partial cash-out was taken from that playfield right after this spin, so it is not '
+                + 'what the next nonce sees — the next step in the strip above is the cash-out itself.';
+            }
+
+            return `That playfield is what the spin on nonce ${nextEvent.nonce} is resolved from — the next spin in the strip above.`;
+          })()}
         </p>
       </div>
 
@@ -1234,6 +1536,14 @@ function handleFinishNonceChange(event) {
   updateResults();
 }
 
+function handlePartialCashoutsChange(event) {
+  appState.partialCashouts = event.target.value;
+  // Adding or dropping a cash-out shifts every later event along the strip, so a hand-picked
+  // selection would land on something else entirely; going back to the end is the honest reset.
+  appState.followsLast = true;
+  updateResults();
+}
+
 // Left/right arrows step through the range, as long as a text field does not have the focus.
 function handleKeyDown(event) {
   if (!appState.session || event.target.tagName === 'INPUT') {
@@ -1260,6 +1570,10 @@ function initApp() {
   finishNonceInput.value = appState.finishNonce;
   startingNonceInput.addEventListener('input', handleStartingNonceChange);
   finishNonceInput.addEventListener('input', handleFinishNonceChange);
+
+  const partialCashoutsInput = document.getElementById('partial-cashouts-input');
+  partialCashoutsInput.value = appState.partialCashouts;
+  partialCashoutsInput.addEventListener('input', handlePartialCashoutsChange);
 
   document.addEventListener('keydown', handleKeyDown);
 
